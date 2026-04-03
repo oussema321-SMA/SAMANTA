@@ -67,7 +67,6 @@ input{
 
 <h2>🛒 متجر سامنتا</h2>
 
-<!-- عرض المنتجات -->
 <div id="products" class="container"></div>
 
 <!-- لوحة التحكم -->
@@ -84,7 +83,7 @@ input{
 </div>
 
 <script>
-// 🔥 إعداد Firebase
+// 🔥 Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCGoFsHzjPlRULyWzKMR_J4CyNwx2EFm3k",
   authDomain: "oussema-d047d.firebaseapp.com",
@@ -97,11 +96,11 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 🔐 كلمة السر
+// 🔐 Admin
 let isAdmin = false;
 
 function login(){
-  let pass = prompt("أدخل كلمة السر:");
+  let pass = prompt("كلمة السر:");
   if(pass === "951707962005"){
     isAdmin = true;
     alert("تم الدخول ✅");
@@ -113,14 +112,15 @@ function login(){
 // ➕ إضافة منتج
 function addProduct(){
   if(!isAdmin){
-    alert("ادخل لوحة التحكم أولاً");
+    alert("ادخل أولاً");
     return;
   }
 
-  let name = document.getElementById("name").value;
-  let price = document.getElementById("price").value;
+  let name = document.getElementById("name").value.trim();
+  let price = document.getElementById("price").value.trim();
   let file = document.getElementById("img").files[0];
 
+  if(!name || !price) return alert("عبي البيانات");
   if(!file) return alert("اختر صورة");
 
   let reader = new FileReader();
@@ -129,10 +129,11 @@ function addProduct(){
     db.collection("products").add({
       name: name,
       price: price,
-      image: e.target.result
-    });
-
-    alert("تم إضافة المنتج ✅");
+      image: e.target.result,
+      createdAt: new Date()
+    })
+    .then(()=> alert("تمت الإضافة ✅"))
+    .catch(err=> alert(err.message));
   };
 
   reader.readAsDataURL(file);
@@ -140,26 +141,43 @@ function addProduct(){
 
 // 📦 عرض المنتجات
 function loadProducts(){
-  db.collection("products").onSnapshot(snapshot=>{
+  db.collection("products")
+  .orderBy("createdAt","desc")
+  .onSnapshot(snapshot=>{
     let container = document.getElementById("products");
     container.innerHTML = "";
 
     snapshot.forEach(doc=>{
       let p = doc.data();
 
-      container.innerHTML += `
-        <div class="product">
-          <img src="${p.image}">
-          <h3>${p.name}</h3>
-          <p>${p.price}</p>
-          <button onclick="buy('${p.name}')">شراء</button>
-        </div>
+      let div = document.createElement("div");
+      div.className = "product";
+
+      div.innerHTML = `
+        <img src="${p.image}">
+        <h3>${p.name}</h3>
+        <p>${p.price}</p>
+        <button onclick="buy('${p.name}')">شراء</button>
+        ${isAdmin ? `<button onclick="deleteProduct('${doc.id}')">❌ حذف</button>` : ""}
       `;
+
+      container.appendChild(div);
     });
   });
 }
 
 loadProducts();
+
+// ❌ حذف منتج
+function deleteProduct(id){
+  if(!isAdmin){
+    alert("ممنوع");
+    return;
+  }
+
+  db.collection("products").doc(id).delete()
+  .then(()=> alert("تم الحذف ✅"));
+}
 
 // 📱 واتساب
 function buy(name){
