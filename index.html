@@ -78,6 +78,15 @@ footer{
   padding:10px;
   background:#1e293b;
 }
+
+/* لوحة التحكم */
+.admin-panel{
+  display:none;
+  margin-top:20px;
+  padding:20px;
+  background:#0f766e;
+  border-radius:12px;
+}
 </style>
 </head>
 
@@ -93,7 +102,7 @@ footer{
     <img src="https://i.imgur.com/5bXQZ5H.jpg">
     <div class="content">
       <h3>110 جوهرة 💎</h3>
-      <div class="price">1.11$ / 3500 د.ت</div>
+      <div class="price">1.11$</div>
       <button onclick="buy('110 جوهرة')">شراء</button>
     </div>
   </div>
@@ -109,13 +118,34 @@ footer{
 
 </div>
 
+<!-- زر لوحة التحكم -->
+<button onclick="openAdmin()">🔐 لوحة التحكم</button>
+
+<!-- لوحة التحكم -->
+<div id="adminPanel" class="admin-panel">
+  <h2>لوحة التحكم 🔧</h2>
+  <p>مرحبا، يمكنك إدارة المتجر هنا</p>
+</div>
+
 <footer>
 © متجر سامنتا
 </footer>
 
 <script>
 function buy(item){
-  window.open("https://wa.me/21695170796?text=مرحبا أريد شراء " + encodeURIComponent(item),"_blank");
+  alert("تم اختيار: " + item);
+}
+
+// فتح لوحة التحكم بكلمة سر
+function openAdmin(){
+  let pass = prompt("أدخل كلمة السر:");
+
+  if(pass === "951707962005"){
+    document.getElementById("adminPanel").style.display = "block";
+    alert("تم الدخول إلى لوحة التحكم ✅");
+  } else {
+    alert("كلمة السر غير صحيحة ❌");
+  }
 }
 </script>
 
