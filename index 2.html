@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMANTA | خدماتنا</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #c9a959;
+            --accent: #8b7355;
+            --background: #faf8f5;
+            --text-primary: #2d2d2d;
+            --text-secondary: #6b6b6b;
+            --white: #ffffff;
+            --success: #25D366;
+            --danger: #e74c3c;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Source Sans 3', sans-serif; background-color: var(--background); color: var(--text-primary); line-height: 1.8; }
+        ::selection { background-color: var(--secondary); color: var(--white); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--background); }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 500; color: var(--primary); }
+
+        .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 24px 48px; display: flex; justify-content: space-between; align-items: center; transition: all 0.4s ease; background: rgba(250, 248, 245, 0.95); backdrop-filter: blur(10px); padding: 16px 48px; box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05); }
+        .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 600; color: var(--primary); letter-spacing: 4px; text-decoration: none; }
+        .nav-links { display: flex; gap: 40px; list-style: none; }
+        .nav-links a { font-size: 0.95rem; font-weight: 500; color: var(--text-secondary); text-decoration: none; transition: color 0.3s ease; }
+        .nav-links a:hover { color: var(--primary); }
+        .admin-btn { padding: 8px 20px; background: var(--primary); color: var(--white); border: none; font-size: 0.85rem; cursor: pointer; transition: all 0.3s ease; }
+        .admin-btn:hover { background: var(--secondary); }
+
+        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 24px; position: relative; background: linear-gradient(180deg, var(--background) 0%, rgba(201, 169, 89, 0.03) 100%); }
+        .hero-ornament { width: 120px; height: auto; margin-bottom: 40px; }
+        .hero-title { font-size: clamp(3rem, 10vw, 7rem); font-weight: 400; letter-spacing: 20px; margin-bottom: 24px; }
+        .hero-tagline { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.2rem, 3vw, 1.6rem); color: var(--text-secondary); font-style: italic; margin-bottom: 40px; }
+        .hero-cta { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+        .btn { display: inline-flex; align-items: center; gap: 12px; padding: 16px 40px; font-size: 0.95rem; font-weight: 500; letter-spacing: 1px; text-decoration: none; border: 2px solid transparent; cursor: pointer; transition: all 0.4s ease; }
+        .btn-primary { background: var(--secondary); color: var(--white); border-color: var(--secondary); }
+        .btn-primary:hover { background: transparent; color: var(--secondary); }
+        .btn-outline { background: transparent; color: var(--primary); border-color: var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: var(--white); }
+        .btn svg { width: 20px; height: 20px; }
+        .scroll-indicator { position: absolute; bottom: 48px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .scroll-indicator span { font-size: 0.75rem; letter-spacing: 2px; color: var(--text-secondary); text-transform: uppercase; }
+        .scroll-indicator svg { width: 24px; height: 24px; animation: bounce 2s infinite; }
+
+        .section { padding: 100px 24px; max-width: 1200px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 60px; }
+        .section-ornament { width: 60px; height: auto; margin: 0 auto 24px; }
+        .section-title { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 16px; }
+        .section-subtitle { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: var(--text-secondary); font-style: italic; }
+
+        .services { background: var(--primary); padding: 100px 24px; margin: 0; max-width: none; }
+        .services .section-title { color: var(--white); }
+        .services .section-subtitle { color: rgba(255, 255, 255, 0.7); }
+        .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .service-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(201, 169, 89, 0.2); padding: 40px 28px; text-align: center; transition: all 0.4s ease; position: relative; display: flex; flex-direction: column; }
+        .service-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--secondary); transform: scaleX(0); transition: transform 0.4s ease; }
+        .service-card:hover { background: rgba(255, 255, 255, 0.05); transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); }
+        .service-card:hover::before { transform: scaleX(1); }
+        .service-image { width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 50%; object-fit: cover; border: 2px solid var(--secondary); background: rgba(201, 169, 89, 0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--secondary); }
+        .service-image img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .service-card h3 { color: var(--white); font-size: 1.3rem; margin-bottom: 12px; }
+        .service-card p { color: rgba(255, 255, 255, 0.7); font-size: 0.95rem; line-height: 1.7; margin-bottom: 20px; flex-grow: 1; }
+        .service-price { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--secondary); margin-bottom: 20px; }
+        .service-price span { font-size: 0.9rem; font-family: 'Source Sans 3', sans-serif; color: rgba(255, 255, 255, 0.6); }
+        .btn-service { padding: 14px 32px; background: transparent; border: 2px solid var(--secondary); color: var(--secondary); font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; width: 100%; }
+        .btn-service:hover { background: var(--secondary); color: var(--white); }
+
+        .contact { background: linear-gradient(180deg, rgba(201, 169, 89, 0.05) 0%, var(--background) 100%); }
+        .contact-content { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+        .contact-info h3 { font-size: 1.8rem; margin-bottom: 24px; }
+        .contact-info p { color: var(--text-secondary); margin-bottom: 32px; font-size: 1.05rem; }
+        .contact-methods { display: flex; flex-direction: column; gap: 20px; }
+        .contact-item { display: flex; align-items: center; gap: 16px; }
+        .contact-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .contact-icon.phone { background: rgba(201, 169, 89, 0.15); color: var(--secondary); }
+        .contact-icon.whatsapp { background: rgba(37, 211, 102, 0.15); color: var(--success); }
+        .contact-icon svg { width: 24px; height: 24px; }
+        .contact-item-text h4 { font-size: 1rem; margin-bottom: 4px; }
+        .contact-item-text p { margin: 0; font-size: 1.1rem; color: var(--primary); font-weight: 500; }
+        .contact-item-text a { color: var(--primary); text-decoration: none; transition: color 0.3s ease; }
+        .contact-item-text a:hover { color: var(--secondary); }
+
+        .order-form { background: var(--white); padding: 40px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border-radius: 4px; }
+        .order-form h3 { font-size: 1.5rem; margin-bottom: 24px; text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 0.9rem; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 14px 16px; font-size: 1rem; border: 1px solid #e0e0e0; background: var(--background); transition: all 0.3s ease; border-radius: 0; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--secondary); background: var(--white); }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .btn-submit { width: 100%; padding: 16px; background: var(--secondary); color: var(--white); border: 2px solid var(--secondary); font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; }
+        .btn-submit:hover { background: transparent; color: var(--secondary); }
+
+        .floating-whatsapp { position: fixed; bottom: 30px; left: 30px; z-index: 999; width: 60px; height: 60px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4); transition: all 0.3s ease; text-decoration: none; }
+        .floating-whatsapp:hover { transform: scale(1.1); box-shadow: 0 6px 30px rgba(37, 211, 102, 0.5); }
+        .floating-whatsapp svg { width: 32px; height: 32px; fill: white; }
+
+        .footer { background: var(--primary); padding: 40px 24px; text-align: center; }
+        .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 600; color: var(--white); letter-spacing: 6px; margin-bottom: 16px; }
+        .footer-text { color: rgba(255, 255, 255, 0.5); font-size: 0.85rem; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--white); width: 100%; max-width: 600px; padding: 40px; border-radius: 8px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .modal-header h2 { font-size: 1.5rem; }
+        .modal-close { width: 40px; height: 40px; border: none; background: var(--background); cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .modal-close:hover { background: var(--danger); color: var(--white); }
+
+        .login-form .form-group { text-align: center; }
+        .login-form input { text-align: center; font-size: 1.2rem; letter-spacing: 4px; }
+        .btn-login { width: 100%; padding: 16px; background: var(--primary); color: var(--white); border: none; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; }
+        .btn-login:hover { background: var(--secondary); }
+        .error-message { color: var(--danger); text-align: center; margin-top: 15px; display: none; }
+        .error-message.show { display: block; }
+
+        .admin-panel { display: none; }
+        .admin-panel.active { display: block; }
+        .admin-section { margin-bottom: 30px; padding: 20px; background: var(--background); border-radius: 4px; }
+        .admin-section h3 { margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--secondary); }
+        .service-edit-item { background: var(--white); padding: 20px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #e0e0e0; }
+        .service-edit-item h4 { margin-bottom: 15px; color: var(--primary); }
+        .edit-form-group { margin-bottom: 15px; }
+        .edit-form-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 5px; color: var(--text-secondary); }
+        .edit-form-group input, .edit-form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; font-size: 0.95rem; }
+        .edit-form-group textarea { min-height: 80px; resize: vertical; }
+
+        .image-upload-container { margin-bottom: 15px; }
+        .image-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--secondary); margin-bottom: 10px; display: none; }
+        .image-preview.has-image { display: block; }
+        .file-input { display: none; }
+        .upload-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--secondary); color: var(--white); border: none; border-radius: 4px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; }
+        .upload-btn:hover { background: #b8943f; }
+        .remove-image-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--danger); color: var(--white); border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer; margin-top: 10px; }
+        .btn-save { padding: 12px 30px; background: var(--success); color: var(--white); border: none; cursor: pointer; transition: all 0.3s ease; }
+        .btn-save:hover { background: #1da851; }
+        .btn-logout { padding: 12px 30px; background: var(--danger); color: var(--white); border: none; cursor: pointer; margin-top: 20px; }
+        .admin-actions { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .btn-add { padding: 12px 24px; background: var(--secondary); color: var(--white); border: none; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
+        .btn-add:hover { background: #b8943f; }
+        .btn-delete-service { padding: 8px 16px; background: var(--danger); color: var(--white); border: none; cursor: pointer; margin-top: 10px; }
+        .service-count { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 15px; }
+
+        .success-toast { position: fixed; bottom: 30px; right: 30px; background: var(--success); color: var(--white); padding: 15px 30px; border-radius: 4px; display: none; z-index: 3000; }
+        .success-toast.show { display: block; }
+
+        .success-message { display: none; text-align: center; padding: 40px 20px; }
+        .success-message.show { display: block; }
+        .success-icon { width: 80px; height: 80px; margin: 0 auto 20px; background: rgba(37, 211, 102, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .success-icon svg { width: 40px; height: 40px; color: var(--success); }
+        .success-message h3 { color: var(--success); margin-bottom: 12px; }
+
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(8px); } 60% { transform: translateY(4px); } }
+
+        @media (max-width: 1024px) { .services-grid { grid-template-columns: repeat(2, 1fr); } .contact-content { gap: 40px; } }
+        @media (max-width: 768px) { .nav { padding: 20px 24px; } .nav-links { display: none; } .hero-title { letter-spacing: 10px; } .hero-cta { flex-direction: column; align-items: center; } .btn { width: 100%; max-width: 280px; justify-content: center; } .section { padding: 80px 24px; } .services-grid { grid-template-columns: 1fr; max-width: 450px; } .contact-content { grid-template-columns: 1fr; } .order-form { padding: 30px 24px; } .form-row { grid-template-columns: 1fr; } .floating-whatsapp { width: 55px; height: 55px; bottom: 20px; left: 20px; } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="#" class="nav-logo">SAMANTA</a>
+        <ul class="nav-links">
+            <li><a href="#services">الخدمات</a></li>
+            <li><a href="#contact">تواصل معنا</a></li>
+            <li><button class="admin-btn" onclick="openAdminModal()">لوحة التحكم</button></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <svg class="hero-ornament" viewBox="0 0 100 20"><path d="M0 10H35M65 10H100" stroke="#c9a959" stroke-width="1"/><circle cx="50" cy="10" r="4" stroke="#c9a959" stroke-width="1"/><path d="M40 10L45 5M40 10L45 15M60 10L55 5M60 10L55 15" stroke="#c9a959" stroke-width="1"/></svg>
+        <h1 class="hero-title">SAMANTA</h1>
+        <p class="hero-tagline">خدمات احترافية تناسب احتياجاتك</p>
+        <div class="hero-cta">
+            <a href="#services" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+                استكشف خدماتنا
+            </a>
+            <a href="https://wa.me/95170796" target="_blank" class="btn btn-outline">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                واتساب الآن
+            </a>
+        </div>
+        <div class="scroll-indicator">
+            <span>اكتشف المزيد</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        </div>
+    </section>
+
+    <section id="services" class="services">
+        <div class="section-header">
+            <svg class="section-ornament" viewBox="0 0 60 20"><path d="M0 10H20M40 10H60" stroke="#c9a959" stroke-width="1"/><circle cx="30" cy="10" r="3" fill="#c9a959"/></svg>
+            <h2 class="section-title">خدماتنا</h2>
+            <p class="section-subtitle">اختر الخدمة التي تناسبك</p>
+        </div>
+        <div class="services-grid" id="servicesGrid"></div>
+    </section>
+
+    <section id="contact" class="section contact">
+        <div class="section-header">
+            <svg class="section-ornament" viewBox="0 0 60 20"><path d="M0 10H20M40 10H60" stroke="#c9a959" stroke-width="1"/><circle cx="30" cy="10" r="3" fill="#c9a959"/></svg>
+            <h2 class="section-title">تواصل معنا</h2>
+            <p class="section-subtitle">نحن هنا لمساعدتك</p>
+        </div>
+        <div class="contact-content">
+            <div class="contact-info">
+                <h3>هل لديك سؤال؟</h3>
+                <p>تواصل معنا مباشرة عبر الهاتف أو الواتساب</p>
+                <div class="contact-methods">
+                    <div class="contact-item">
+                        <div class="contact-icon phone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg></div>
+                        <div class="contact-item-text"><h4>اتصل بنا</h4><a href="tel:95170796">95170796</a></div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon whatsapp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+                        <div class="contact-item-text"><h4>واتساب</h4><a href="https://wa.me/95170796" target="_blank">95170796</a></div>
+                    </div>
+                </div>
+            </div>
+            <div class="order-form" id="orderForm">
+                <h3>اطلب خدمة</h3>
+                <form id="serviceForm">
+                    <div class="form-row">
+                        <div class="form-group"><label for="name">الاسم</label><input type="text" id="name" required placeholder="أدخل اسمك"></div>
+                        <div class="form-group"><label for="phone">رقم الهاتف</label><input type="tel" id="phone" required placeholder="أدخل رقم هاتفك"></div>
+                    </div>
+                    <div class="form-group"><label for="service">الخدمة المطلوبة</label><select id="service" required><option value="">اختر الخدمة</option></select></div>
+                    <div class="form-group"><label for="message">تفاصيل الطلب</label><textarea id="message" placeholder="اكتب تفاصيل طلبك هنا..."></textarea></div>
+                    <button type="submit" class="btn-submit">إرسال الطلب</button>
+                </form>
+                <div class="success-message" id="successMessage">
+                    <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
+                    <h3>تم إرسال طلبك بنجاح!</h3>
+                    <p>سنتواصل معك قريباً عبر الواتساب</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-logo">SAMANTA</div>
+        <p class="footer-text">© 2026 SAMANTA. جميع الحقوق محفوظة.</p>
+    </footer>
+
+    <a href="https://wa.me/95170796" target="_blank" class="floating-whatsapp">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    </a>
+
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">لوحة التحكم</h2>
+                <button class="modal-close" onclick="closeAdminModal()">×</button>
+            </div>
+            <div class="login-form" id="loginForm">
+                <div class="form-group"><label for="adminPassword">أدخل كلمة السر</label><input type="password" id="adminPassword" placeholder="••••••••••" onkeypress="handlePasswordEnter(event)"></div>
+                <button class="btn-login" onclick="checkPassword()">دخول</button>
+                <p class="error-message" id="loginError">كلمة السر غير صحيحة</p>
+            </div>
+            <div class="admin-panel" id="adminPanel">
+                <div class="admin-section">
+                    <h3>تعديل الخدمات</h3>
+                    <p class="service-count" id="serviceCount"></p>
+                    <div class="admin-actions">
+                        <button class="btn-add" onclick="addNewService()">+ إضافة خدمة جديدة</button>
+                    </div>
+                    <div id="editServicesContainer"></div>
+                </div>
+                <button class="btn-logout" onclick="logout()">تسجيل الخروج</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="success-toast" id="successToast">تم الحفظ بنجاح!</div>
+
+    <script>
+        const defaultServices = [
+            { id: 1, name: 'الخدمة الأولى', description: 'وصف الخدمة الأولى - أضف تفاصيل الخدمة هنا', price: '$XX', image: '' },
+            { id: 2, name: 'الخدمة الثانية', description: 'وصف الخدمة الثانية - أضف تفاصيل الخدمة هنا', price: '$XX', image: '' },
+            { id: 3, name: 'الخدمة الثالثة', description: 'وصف الخدمة الثالثة - أضف تفاصيل الخدمة هنا', price: '$XX', image: '' },
+            { id: 4, name: 'الخدمة الرابعة', description: 'وصف الخدمة الرابعة - أضف تفاصيل الخدمة هنا', price: '$XX', image: '' },
+            { id: 5, name: 'الخدمة الخامسة', description: 'وصف الخدمة الخامسة - أضف تفاصيل الخدمة هنا', price: '$XX', image: '' },
+            { id: 6, name: 'الخدمة السادسة', description: 'وصف الخدمة السادسة - أضف تفاصيل الخدمة هنا', price: '$XX', image: '' }
+        ];
+
+        const ADMIN_PASSWORD = '200520051920';
+        let servicesData = [];
+        let firebaseDb = null;
+
+        function saveToStorage() {
+            try { localStorage.setItem('samantaServices', JSON.stringify(servicesData)); } catch(e) {}
+        }
+
+        function loadFromStorage() {
+            try {
+                const s = localStorage.getItem('samantaServices');
+                return s ? JSON.parse(s) : null;
+            } catch(e) { return null; }
+        }
+
+        function initFirebase() {
+            if (typeof firebase === 'undefined') return;
+            const config = {
+                apiKey: "AIzaSyATwlZlV8ybuth2Pi_K5ky10R92Tm2xg74",
+                authDomain: "site-e0a94.firebaseapp.com",
+                databaseURL: "https://site-e0a94-default-rtdb.firebaseio.com",
+                projectId: "site-e0a94",
+                storageBucket: "site-e0a94.firebasestorage.app",
+                messagingSenderId: "553572144435",
+                appId: "1:553572144435:web:718972bed153f981035a46"
+            };
+            try {
+                if (!firebase.apps.length) firebase.initializeApp(config);
+                firebaseDb = firebase.database();
+            } catch(e) { console.log('Firebase error'); }
+        }
+
+        async function loadFromFirebase() {
+            if (!firebaseDb) return;
+            try {
+                const snap = await firebaseDb.ref('services').once('value');
+                if (snap.exists()) {
+                    servicesData = [];
+                    snap.forEach(c => servicesData.push(c.val()));
+                    servicesData.sort((a,b) => a.id - b.id);
+                    saveToStorage();
+                }
+            } catch(e) {}
+        }
+
+        async function saveToFirebase() {
+            saveToStorage();
+            if (!firebaseDb) return;
+            try {
+                const updates = {};
+                servicesData.forEach(s => updates['services/' + s.id] = s);
+                await firebaseDb.ref().update(updates);
+            } catch(e) {}
+        }
+
+        function init() {
+            const local = loadFromStorage();
+            if (local && local.length > 0) {
+                servicesData = local;
+            } else {
+                servicesData = JSON.parse(JSON.stringify(defaultServices));
+                saveToStorage();
+            }
+            renderServices();
+            updateServiceSelect();
+            initFirebase();
+            setTimeout(loadFromFirebase, 500);
+        }
+
+        function renderServices() {
+            const grid = document.getElementById('servicesGrid');
+            if (servicesData.length === 0) {
+                grid.innerHTML = '<p style="color: white; text-align: center;">لا توجد خدمات</p>';
+                return;
+            }
+            grid.innerHTML = servicesData.map((s, i) => `
+                <div class="service-card">
+                    <div class="service-image">
+                        ${s.image ? '<img src="' + s.image + '" alt="' + s.name + '">' : (i + 1)}
+                    </div>
+                    <h3>${s.name}</h3>
+                    <p>${s.description}</p>
+                    <div class="service-price">${s.price} <span>/شروع من</span></div>
+                    <button class="btn-service" onclick="scrollToContact()">اطلب الآن</button>
+                </div>
+            `).join('');
+        }
+
+        function updateServiceSelect() {
+            const sel = document.getElementById('service');
+            sel.innerHTML = '<option value="">اختر الخدمة</option>' + servicesData.map(s => '<option value="' + s.name + '">' + s.name + '</option>').join('');
+        }
+
+        function openAdminModal() { document.getElementById('adminModal').classList.add('active'); }
+        function closeAdminModal() { document.getElementById('adminModal').classList.remove('active'); }
+        function handlePasswordEnter(e) { if (e.key === 'Enter') checkPassword(); }
+
+        function checkPassword() {
+            if (document.getElementById('adminPassword').value === ADMIN_PASSWORD) {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('adminPanel').classList.add('active');
+                document.getElementById('modalTitle').textContent = 'تعديل المحتوى';
+                loadEditForms();
+            } else {
+                document.getElementById('loginError').classList.add('show');
+            }
+        }
+
+        function logout() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('adminPanel').classList.remove('active');
+            document.getElementById('modalTitle').textContent = 'لوحة التحكم';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function loadEditForms() {
+            document.getElementById('serviceCount').textContent = 'عدد الخدمات: ' + servicesData.length;
+            const c = document.getElementById('editServicesContainer');
+            if (servicesData.length === 0) {
+                c.innerHTML = '<p style="text-align: center; color: #666;">لا توجد خدمات - أضف خدمة جديدة</p>';
+                return;
+            }
+            c.innerHTML = servicesData.map((s, i) => `
+                <div class="service-edit-item">
+                    <h4>الخدمة ${i + 1}</h4>
+                    <div class="image-upload-container">
+                        <img id="preview${s.id}" class="image-preview ${s.image ? 'has-image' : ''}" src="${s.image || ''}">
+                        <input type="file" id="imageInput${s.id}" class="file-input" accept="image/*" onchange="handleImageUpload(${s.id}, this)">
+                        <label for="imageInput${s.id}" class="upload-btn">${s.image ? 'تغيير الصورة' : 'رفع صورة'}</label>
+                        ${s.image ? '<button class="remove-image-btn" onclick="removeImage(' + s.id + ')">حذف</button>' : ''}
+                    </div>
+                    <div class="edit-form-group"><label>الاسم</label><input type="text" id="editName${s.id}" value="${s.name}"></div>
+                    <div class="edit-form-group"><label>الوصف</label><textarea id="editDesc${s.id}">${s.description}</textarea></div>
+                    <div class="edit-form-group"><label>السعر</label><input type="text" id="editPrice${s.id}" value="${s.price}"></div>
+                    <button class="btn-save" onclick="saveService(${s.id})">حفظ</button>
+                    <button class="btn-delete-service" onclick="deleteService(${s.id})">حذف</button>
+                </div>
+            `).join('');
+        }
+
+        function addNewService() {
+            const newId = servicesData.length > 0 ? Math.max(...servicesData.map(s => s.id)) + 1 : 1;
+            servicesData.push({ id: newId, name: 'خدمة جديدة', description: 'أضف الوصف', price: 'السعر', image: '' });
+            saveToFirebase();
+            loadEditForms();
+            renderServices();
+            updateServiceSelect();
+            showToast();
+        }
+
+        function deleteService(id) {
+            if (!confirm('حذف هذه الخدمة؟')) return;
+            servicesData = servicesData.filter(s => s.id !== id);
+            saveToFirebase();
+            loadEditForms();
+            renderServices();
+            updateServiceSelect();
+            showToast();
+        }
+
+        function saveService(id) {
+            const s = servicesData.find(x => x.id === id);
+            if (s) {
+                s.name = document.getElementById('editName' + id).value;
+                s.description = document.getElementById('editDesc' + id).value;
+                s.price = document.getElementById('editPrice' + id).value;
+                saveToFirebase();
+                renderServices();
+                updateServiceSelect();
+                showToast();
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((res, rej) => {
+                const r = new FileReader();
+                r.readAsDataURL(file);
+                r.onload = () => res(r.result);
+                r.onerror = rej;
+            });
+        }
+
+        async function handleImageUpload(id, input) {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) { alert('حجم كبير'); return; }
+            try {
+                const base64 = await fileToBase64(file);
+                const s = servicesData.find(x => x.id === id);
+                if (s) {
+                    s.image = base64;
+                    const p = document.getElementById('preview' + id);
+                    if (p) { p.src = base64; p.classList.add('has-image'); }
+                    saveToFirebase();
+                    renderServices();
+                    showToast();
+                }
+            } catch(e) { alert('خطأ'); }
+        }
+
+        function removeImage(id) {
+            const s = servicesData.find(x => x.id === id);
+            if (s) {
+                s.image = '';
+                const p = document.getElementById('preview' + id);
+                if (p) { p.src = ''; p.classList.remove('has-image'); }
+                saveToFirebase();
+                renderServices();
+                showToast();
+            }
+        }
+
+        function showToast() {
+            const t = document.getElementById('successToast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function scrollToContact() { document.getElementById('contact').scrollIntoView({ behavior: 'smooth' }); }
+
+        document.getElementById('serviceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const service = document.getElementById('service').value;
+            const msg = document.getElementById('message').value;
+            let whatsappMsg = 'مرحباً، أنا ' + name + '%0Aرقم الهاتف: ' + phone + '%0Aالخدمة: ' + service + '%0A';
+            if (msg) whatsappMsg += 'تفاصيل: ' + msg;
+            window.open('https://wa.me/95170796?text=' + whatsappMsg, '_blank');
+            document.getElementById('serviceForm').style.display = 'none';
+            document.getElementById('successMessage').classList.add('show');
+        });
+
+        document.getElementById('adminModal').addEventListener('click', function(e) { if (e.target === this) closeAdminModal(); });
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+<style>
+#minimax-floating-ball {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 12px;
+  background: #222222;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  color: #F8F8F8;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  z-index: 9999;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+#minimax-floating-ball:hover {
+  transform: translateY(-2px);
+  background: #383838;
+}
+.minimax-ball-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.minimax-logo-wave {
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg%20preserveAspectRatio%3D%27none%27%20width%3D%27100%25%27%20height%3D%27100%25%27%20overflow%3D%27visible%27%20style%3D%27display%3A%20block%3B%27%20viewBox%3D%270%200%20170.136%20138.225%27%20fill%3D%27none%27%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%3E%3Cg%20id%3D%27Frame%202116748449%27%3E%3Cpath%20id%3D%27Subtract%27%20d%3D%27M170%20101.783C170%20105.144%20168.49%20108.327%20165.886%20110.453L134.963%20135.702C132.964%20137.334%20130.463%20138.225%20127.883%20138.225H10.4938C4.69824%20138.225%200%20133.527%200%20127.732V39.2289C0%2035.8597%201.51758%2032.6698%204.13162%2030.5442L38.5402%202.56547C40.536%200.942662%2043.0298%200.0567377%2045.602%200.0567377H159.506C165.302%200.0567377%20170%204.75498%20170%2010.5506V101.783Z%27%20fill%3D%27black%27%20style%3D%27fill%3Ablack%3Bfill-opacity%3A1%3B%27/%3E%3Cpath%20id%3D%27Subtract_2%27%20d%3D%27M149.011%2094.4632C149.011%2096.1471%20148.253%2097.7415%20146.946%2098.8043L125.893%20115.936C124.895%20116.748%20123.648%20117.191%20122.361%20117.191H24.6479C22.716%20117.191%2021.15%20115.625%2021.15%20113.693V46.1166C21.15%2044.4267%2021.9135%2042.8274%2023.2274%2041.7648L47.367%2022.2437C48.3638%2021.4376%2049.607%2020.9982%2050.8888%2020.9988L145.514%2021.0427C147.446%2021.0436%20149.011%2022.6094%20149.011%2024.5406V94.4632Z%27%20fill%3D%27white%27%20style%3D%27fill%3Awhite%3Bfill-opacity%3A1%3B%27/%3E%3Cpath%20id%3D%27Rectangle%20111142564%27%20d%3D%27M42.111%2080.8025C42.111%2077.7115%2044.6167%2075.2057%2047.7077%2075.2057H60.9999C64.0908%2075.2057%2066.5966%2077.7115%2066.5966%2080.8025V121.029H42.111V80.8025Z%27%20fill%3D%27black%27%20style%3D%27fill%3Ablack%3Bfill-opacity%3A1%3B%27/%3E%3Cpath%20id%3D%27Rectangle%20111142567%27%20d%3D%27M79.1894%2080.8025C79.1894%2077.7115%2081.6952%2075.2057%2084.7861%2075.2057H98.0783C101.169%2075.2057%20103.675%2077.7115%20103.675%2080.8025V121.029H79.1894V80.8025Z%27%20fill%3D%27black%27%20style%3D%27fill%3Ablack%3Bfill-opacity%3A1%3B%27/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 14px 11px;
+  background-color: #8FD1FF;
+  border-radius: 4px;
+}
+
+.minimax-ball-text {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.minimax-close-icon {
+  margin-left: 8px;
+  font-size: 16px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.minimax-close-icon:hover {
+  opacity: 1;
+}
+</style>
+<div id="minimax-floating-ball">
+  <div class="minimax-ball-content">
+    <div class="minimax-logo-wave"></div>
+    <span class="minimax-ball-text">Created by MiniMax Agent</span>
+  </div>
+  <div class="minimax-close-icon">×</div>
+</div>
+<script>
+// Initialize floating ball functionality
+function initFloatingBall() {
+  const ball = document.getElementById('minimax-floating-ball');
+  if (!ball) return;
+
+  // Initial animation
+  ball.style.opacity = '0';
+  ball.style.transform = 'translateY(20px)';
+
+  setTimeout(() => {
+    ball.style.opacity = '1';
+    ball.style.transform = 'translateY(0)';
+  }, 500);
+
+  // Handle logo click
+  const ballContent = ball.querySelector('.minimax-ball-content');
+  ballContent.addEventListener('click', function (e) {
+    e.stopPropagation();
+    window.open('https://agent.minimax.io/', '_blank');
+    ball.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      ball.style.transform = 'scale(1)';
+    }, 100);
+  });
+
+  // Handle close button click
+  const closeIcon = ball.querySelector('.minimax-close-icon');
+  closeIcon.addEventListener('click', function (e) {
+    e.stopPropagation();
+    ball.style.opacity = '0';
+    ball.style.transform = 'translateY(20px)';
+
+    setTimeout(() => {
+      ball.style.display = 'none';
+    }, 300);
+  });
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', initFloatingBall); 
+</script>
+</body>
+</html>
